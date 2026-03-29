@@ -1,0 +1,121 @@
+// ==========================================
+// Improvly - Feature 1a: Create Association Themes for New Story
+// MVP SCHEMA (Happy Path Only)
+// Last updated: 2026-03-26
+//
+// Core functionality:
+// - User accounts and story submission
+// - User-required themes (constraints for LLM)
+// - LLM chain generation with simple retry
+// - Chain display and interactions (favoriting, search)
+//
+// Copy this into https://dbdiagram.io to visualize
+// ==========================================
+
+// ==========================================
+// CORE TABLES: USERS & STORIES
+// ==========================================
+
+Table users {
+  id serial [pk, increment]
+  email varchar(255) [unique, not null]
+  name varchar(100)
+  
+  // Chain limits
+  max_chain_limit int [default: 50, not null, note: 'Hard cap per story - can vary by subscription tier']
+  
+  created_at timestamp [default: `now()`, not null]
+  updated_at timestamp [default: `now()`]
+  
+  Note: 'User accounts with per-user chain limits'
+}
+
+Table stories {
+  id serial [pk, increment]
+  user_id int [ref: > users.id, not null]
+  
+  // Content
+  title varchar(100)
+  content text [not null, note: 'Max 3500 chars - CHECK (LENGTH(content) <= 3500)']
+  
+  // Timestamps
+  created_at timestamp [default: `now()`, not null]
+  updated_at timestamp [default: `now()`]
+  
+  Note: 'User-submitted stories with CHECK constraint: LENGTH(content) <= 3500'
+}
+
+Table story_required_themes {
+  id serial [pk, increment]
+  story_id int [ref: > stories.id, not null]
+  theme_id int [ref: > themes.id, not null]
+  
+  indexes {
+    story_id [name: 'idx_required_themes_story']
+    (story_id, theme_id) [unique, name: 'idx_required_themes_unique']
+  }
+  
+  Note: 'User-provided themes (0-5) that MUST appear as final themes. LLM generates remaining finals to reach 10 total.'
+}
+
+// ==========================================
+// CHAIN GENERATION TABLES
+// ==========================================
+
+Table generation_requests {
+  id serial [pk, increment]
+  story_id int [ref: > stories.id, not null]
+  
+  // Status tracking
+  status varchar(50) [default: 'pending', not null, note: 'pending, completed, failed']
+  
+  // Error tracking (lightweight)
+  error_message text [note: 'Error details if failed']
+  
+  // Timestamps
+  created_at timestamp [default: `now()`, not null]
+  
+  Note: 'Tracks LLM generation attempts and errors'
+}
+
+Table themes {
+  id serial [pk, increment]
+  name varchar(60) [unique, not null, note: 'Theme text stored in lowercase']
+  
+  Note: 'Deduplicated theme library (all lowercase for consistency)'
+}
+
+Table association_chains {
+  id serial [pk, increment]
+  story_id int [ref: > stories.id, not null]
+  created_at timestamp [default: `now()`, not null]
+  
+  Note: 'Chain entity - represents one association chain. Serves as reference point for chain_themes and chain_labels.'
+}
+
+Table chain_labels {
+  id serial [pk, increment]
+  chain_id int [ref: > association_chains.id, not null]
+  label_type varchar(50) [not null, note: 'Label type: favorite, important, archived, etc.']
+  
+  indexes {
+    (chain_id, label_type) [unique, name: 'idx_chain_unique_label']
+    chain_id [name: 'idx_chain_labels_lookup']
+  }
+  
+  Note: 'Flexible labeling system for chains. MVP uses "favorite" label type.'
+}
+
+Table chain_themes {
+  id serial [pk, increment]
+  chain_id int [ref: > association_chains.id, not null]
+  theme_id int [ref: > themes.id, not null]
+  position int [not null, note: 'Order in chain (1-4), final position connects to story']
+  is_final_theme boolean [default: false, note: 'True if last theme in chain']
+  
+  indexes {
+    (chain_id, position) [unique, name: 'idx_chain_themes_order']
+  }
+  
+  Note: 'Themes within chains (ordered, with final theme marked)'
+}
