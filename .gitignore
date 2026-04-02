@@ -1,2 +1,8 @@
 # Private Documentation
 docs-private/
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
