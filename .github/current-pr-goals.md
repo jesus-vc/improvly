@@ -1,90 +1,65 @@
 # Current PR Goals
 
-**Branch:** `test/relearn-javascript`  
+**Branch:** `feature/database-connection`  
 **Target:** `main`
 
 ## Objective
 
-This is a temporary sandbox environment where I want to re-learn JavaScript by implementing the checklist below. I want to review all the core building blocks of JavaScript (including the list below) for an upcoming job interview where I'll have to use JavaScript to pair program live with senior engineers.
-
-Your goal is to help me relearn these blocks by generating code and gradually explaining topics to me as we go along.
-
-### JavaScript Topics to Cover
-
-- Variables: let, const
-- Functions: arrow vs regular
-- Objects & arrays
-- Loops: for, for...of, .map(), .filter()
-- Conditionals
-- Destructuring
-- Spread/rest (...)
-- Basic async: async/await
-
-### Learning Approach
-
-**Format:**
-
-- Work through topics one-by-one with exercises after each
-- If pace feels slow, switch to comprehensive file with all examples
-- Create separate files per topic (e.g., `01-variables.js`, `02-functions.js`)
-
-**Explanation Style:**
-
-- Brief reminders with code examples (assume basic familiarity)
-- Detailed explanations including common pitfalls and best practices
-
-**Practice:**
-
-- Start with example code to read and run (Node.js)
-- May switch to challenges/exercises as needed
-
-**Context:**
-
-- Every piece of code should relate to the Express backend or React Native mobile app
-- Examples should use realistic scenarios from the Improvly project (users, observations, comedy chains, API calls)
-- Prepare for live pair programming interviews with senior engineers
+Connect the Express backend to PostgreSQL and validate the connection before building any models or endpoints.
 
 ## Implementation Checklist
 
-Bootstrap the Express backend with minimal infrastructure to validate the tech stack and enable end-to-end testing.
+### 2. Database Connection Layer
 
-### 1. Express Application Bootstrap
-
-**What:** Set up the minimal Express app entry point and configuration
+**What:** Set up a PostgreSQL connection pool and export a reusable db client
 
 **Components:**
 
-- `server.js` with Express instance
-- Basic CORS configuration (for future React Native app)
-- Health check endpoint (GET /health)
-- Environment variable loading (.env file)
+- `database.js` with connection pool creation (using `pg`)
+- Connection string loaded from environment variable (`DATABASE_URL`)
+- Exported db client for use across route handlers
 
 **Reasoning:**
 
-- Proves Express runs before adding complexity
-- Health check enables infrastructure monitoring later
-- CORS config needed for mobile app to call backend
-- Environment variables keep secrets out of code (database URL, etc.)
+- Separates DB concerns from business logic (single responsibility)
+- Connection pool is the Node.js equivalent of SQLAlchemy's session factory — avoids opening a new connection per request
+- Environment-based connection string supports local dev → production migration
+- Validates DB connectivity before building models on top of it
 
 ## Success Criteria
 
-- [x] Express server starts without errors
-- [x] Health check endpoint returns 200 OK
-- [x] CORS configured for mobile app origins
-- [x] Environment variables load correctly
-- [x] No hardcoded secrets in code
+- [ ] Database connection pool initializes without errors
+- [ ] `DATABASE_URL` loaded from `.env`, not hardcoded
+- [ ] Connection verified (e.g. simple `SELECT 1` query succeeds)
+- [ ] Integration test confirms DB is reachable
 
 ## Out of Scope (for this PR)
 
-- Database connection
+- Data models / table queries
 - Authentication/authorization
 - Business logic endpoints
-- Testing infrastructure
 - Production deployment configuration
 
 ## Next Steps (Future PRs)
 
-- Database connection (PostgreSQL + node-postgres or Prisma)
 - User authentication (hardcoded user_id=1 for MVP)
 - Core API endpoints (observations, chains)
 - LLM integration (Anthropic Claude)
+
+---
+
+## Add-on: JavaScript Re-learning
+
+This PR is also an opportunity to reinforce JavaScript concepts through the implementation work above. Topics are covered as they naturally appear in the code rather than as isolated exercises.
+
+### Topics in Scope for This PR
+
+- async/await (DB queries are async)
+- Modules: import/export patterns
+- Error handling: try/catch with async functions
+
+### Approach
+
+- Examples use real Improvly code (not toy examples)
+- Brief explanation + code — no need to cover every edge case
+- Goal is interview readiness, not exhaustive coverage
