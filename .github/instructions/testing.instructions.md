@@ -36,7 +36,7 @@ applyTo: "**"
 - Code that merely delegates to a library with no transformation
 - Every permutation of valid input — test representative cases and edge cases only
 
-## External Integrations (LLM, DB)
+## External Integrations
 
 - Mock external services (Anthropic, DB) in unit/integration tests
 - Write at least one test that validates the mock is called with the correct input
