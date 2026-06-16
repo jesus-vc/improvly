@@ -2,7 +2,7 @@
 
 TL;DR: Cross-platform mobile app (Android & iOS) that uses LLMs, LMMs, and Retrieval-Augmented Generation (RAG) to turn everyday observations into funny, creative comedy material.
 
-Become funnier in real life, more charming in conversation, and more confident in the moments that matter most.
+Become funnier in real life, more charming in conversation, and more confident in the moments that matter most!
 
 ## 🚧 Current Development Phase (June - July 2026)
 
